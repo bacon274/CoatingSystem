@@ -13,7 +13,7 @@
 // EEPROM location //
 int speedMemoryLocation = 0;
 
-// LCD and Menu Classes //
+// LCD and Menu Classes // /// DO I NEED TESTA?
 ActuatorClass testA(13); 
 LCD12864RSPI LCDA1 = LCD12864RSPI();
 
@@ -27,7 +27,7 @@ int counter = 0;
 const byte pumpOnPin = 2;
 const byte pumpOffPin = 3;
 volatile byte pumpState = LOW;
-const byte pumpRelayPin = 50; // need to check
+const byte pumpRelayPin = 50; 
 const byte pumpRelayLEDPin = 51;
 
 // Rollers //
@@ -55,7 +55,8 @@ const byte s2RelayPin = 23;
 
 
 
-// Declare Functions:
+
+/////////////// Declare Functions ///////////////
 void menuItemFunction();
 void runFunction();
 void settingsFunction();
@@ -64,9 +65,9 @@ void cleanFunction();
 void speedFunction();
 void setSpeedFunction();
 
-/// Menu Items Text (will put in the corresponding functions for each menu)
-unsigned char testCharsUnsigned[] = "TEST123";  // NOTE: you cannot print unsigned char array, it is in a different format
-char testChars[] = "TEST123";
+/////////////////// Menu Setup ///////////////////
+// Declare Menu Titles //
+// NOTE: you cannot print unsigned char array, it is in a different format
 unsigned char runCharsUnsigned[] = "Run";  
 char runChars[] = "Run";
 unsigned char cleanCharsUnsigned[] = "Clean";  
@@ -74,48 +75,27 @@ char cleanChars[] = "Clean";
 unsigned char settingsCharsUnsigned[] = "Settings";  
 char settingsChars[] = "Settings";
 
-
-
-unsigned char testCharsUnsigned2[] = "2TEST123";  // NOTE: you cannot print unsigned char array, it is in a different format
-char testChars2[] = "2TEST123";
-unsigned char runCharsUnsigned2[] = "2Run";  
-char runChars2[] = "2Run";
-unsigned char cleanCharsUnsigned2[] = "2Clean";  
-char cleanChars2[] = "2Clean";  
-unsigned char settingsCharsUnsigned2[] = "2Settings";  
-char settingsChars2[] = "2Settings";
-
-/// Back Item:
+// Declare Back Item:
 
 unsigned char backCharsUnsigned[] = "Back";  
 char backChars[] = "Back";
 MenuItem backItem(AR_SIZE(backCharsUnsigned), backCharsUnsigned, backChars,&backFunction);
 
-// Blank Item: 
+// Declare Blank Item: 
 unsigned char blankCharsUnsigned[] = "";  
 char blankChars[] = "";
 MenuItem blankItem(AR_SIZE(blankCharsUnsigned), blankCharsUnsigned, blankChars,&menuItemFunction);
 
 
-// Creating Menu Item objects for each item
+// Creating Menu Item objects //
 MenuItem runItem(AR_SIZE(runCharsUnsigned), runCharsUnsigned, runChars,&runFunction);
 MenuItem cleanItem(AR_SIZE(cleanCharsUnsigned), cleanCharsUnsigned, cleanChars,&cleanFunction);
 MenuItem settingsItem = {AR_SIZE(settingsCharsUnsigned), settingsCharsUnsigned, settingsChars,&settingsFunction};
-MenuItem testItem(AR_SIZE(testCharsUnsigned), testCharsUnsigned, testChars,&menuItemFunction);
 
-MenuItem runItem2(AR_SIZE(runCharsUnsigned2), runCharsUnsigned2, runChars2,&menuItemFunction);
-MenuItem cleanItem2(AR_SIZE(cleanCharsUnsigned2), cleanCharsUnsigned2, cleanChars2,&menuItemFunction);
-MenuItem settingsItem2 = {AR_SIZE(settingsCharsUnsigned2), settingsCharsUnsigned2, settingsChars2,&menuItemFunction};
-MenuItem testItem2(AR_SIZE(testCharsUnsigned2), testCharsUnsigned2, testChars2,&menuItemFunction);
-
-
+// Create List of Menu Items //
 MenuItem itemList1[8] = {runItem,cleanItem,settingsItem,blankItem,blankItem,blankItem,blankItem,blankItem}; // Create list of menu item objects
-//MenuItem itemList2[4] = {testItem2, runItem2,settingsItem2,backItem}; 
 
-
-
-/// Settings Items
-
+// Declare Settings Menu Titles //
 unsigned char conveyerCharsUnsigned[] = "Conveyer";  
 char conveyerChars[] = "Conveyer";
 unsigned char speedCharsUnsigned[] = "Belt Speed";  
@@ -123,14 +103,17 @@ char speedChars[] = "Belt Speed";
 unsigned char flowCharsUnsigned[] = "Flow Rate"; 
 char flowChars[] = "Flow Rate";
 
+// Creating Setting Menu Item objects //
 MenuItem conveyerItem(AR_SIZE(conveyerCharsUnsigned), conveyerCharsUnsigned, conveyerChars,&menuItemFunction);
 MenuItem speedItem(AR_SIZE(speedCharsUnsigned), speedCharsUnsigned, speedChars,&speedFunction);
 MenuItem flowItem(AR_SIZE(flowCharsUnsigned), flowCharsUnsigned, flowChars,&menuItemFunction);
 
+// Create List of Settings Menu Items //
 MenuItem itemListSettings[8] = {conveyerItem,speedItem,flowItem,backItem,blankItem,blankItem,blankItem,blankItem}; // Create list of menu item objects for RUN
 
-// Speed Items: 
-//
+
+// Declare Speed Setting Menu Titles //
+
 unsigned char speed1Unsigned[] = "Speed 1";  
 char speed1Chars[] =  "Speed 1";  
 unsigned char speed2Unsigned[] = "Speed 2";  
@@ -148,6 +131,7 @@ char speed7Chars[] =  "Speed 7";
 unsigned char speed8Unsigned[] = "Speed 8";  
 char speed8Chars[] =  "Speed 8";  
 
+// Creating Setting Menu Item objects in List //
 MenuItem itemListSpeed[8] = {MenuItem(AR_SIZE(speed1Unsigned), speed1Unsigned, speed1Chars, &setSpeedFunction), 
                              MenuItem(AR_SIZE(speed2Unsigned), speed2Unsigned, speed2Chars, &setSpeedFunction),
                              MenuItem(AR_SIZE(speed3Unsigned), speed3Unsigned, speed3Chars, &setSpeedFunction), 
@@ -161,21 +145,18 @@ MenuItem itemListSpeed[8] = {MenuItem(AR_SIZE(speed1Unsigned), speed1Unsigned, s
 
 
 
-///// Create MenuObjects
-MenuClass speedMenu(8,itemListSpeed);
-MenuClass settingsMenu(4,itemListSettings);
-MenuClass testMenu(3,itemList1);                              // new constructor menu initialised
-//MenuClass testMenu2(AR_SIZE(itemList2),itemList2); 
-//MenuClass testMenu(runItem);                              // create menu initialised with a random constructor
-//MenuClass testMenu2(cleanItem);
+// Create Menu Objects //
+MenuClass speedMenu(8,itemListSpeed);            // Speed Settings
+MenuClass settingsMenu(4,itemListSettings);      // Settings
+MenuClass testMenu(3,itemList1);                 // Main Menu
+
  
 
-//MenuClass testMenu(MenuItems); // The constructor should be in this formt or gfet rid of
-
-//MenuClass  menuCurrent = testMenu; // Current Menu 
+// Current Menu Pointer //
 MenuClass *menuCurrentPt = &testMenu; // Dynamic Memory Pointer for current MenuObject
-//MenuClass *menuStack[10] = {menuCurrentPt}; // array of pointers
 
+////////////////////// Functions //////////////////////
+// Rotary Encoder Functions //
 void OnButtonClicked(void) {
   Serial.println("Button 1: clicked");
   Serial.println();
@@ -197,67 +178,41 @@ void OnButtonRight(void) {
   Serial.println(menuCurrentPt->index);
 }
 
-void setMenu(MenuClass currentItem){
-  // this function takes a menuObject and sets the menucurrent to that value
-  // adds to the stack of menu items 
-  // calls the display menu function of the menu Object
-}
-void test1(MenuItem menuItems[], int num){
-  Serial.println(num);
-  for (int i =0; i<6; i++){
-    Serial.print(i);
-    Serial.print(" ");
-    Serial.println(menuItems[i].signedTitle);
-  }
-}
-
+// Menu Item Functions //
 void menuItemFunction(){
   Serial.println("MENU FUNCTION HAPPENING");
-  
-  
 }
 void cleanFunction(){
-  Serial.println("ClEAN FUNCTION HAPPENING");
-//  digitalWrite(cleanRelayPin, LOW); 
-//  digitalWrite(runRelayPin, HIGH); 
   PORTA = B11001010; 
+  Serial.println("ClEAN FUNCTION HAPPENING");
   cleanState = true;
   runState = false;
 }
 void runFunction(){
-  Serial.println("RUN FUNCTION HAPPENING");
   PORTA = B00110101; 
+  Serial.println("RUN FUNCTION HAPPENING");
   cleanState = false;
   runState = true;
 }
-
 void backFunction(){
   Serial.println("GOING BACK");
 //  Serial.println((menuCurrentPt->parentMenu->listofMenuItems[0].signedTitle));
   menuCurrentPt->parentMenu->displayMenuOptions();
   menuCurrentPt =  menuCurrentPt->parentMenu;
-  
 }
-
 void settingsFunction(){
   Serial.println("Settings Menu");
   settingsMenu.setParentMenu(menuCurrentPt);
   Serial.println(settingsMenu.parentMenu->listofMenuItems[0].signedTitle);
   menuCurrentPt = &settingsMenu;
-//  menuStack
   settingsMenu.displayMenuOptions();
-  
 }
-
 void speedFunction(){
   Serial.println("Speed selection Menu");
   speedMenu.setParentMenu(menuCurrentPt);
   menuCurrentPt = &speedMenu;
   speedMenu.displayMenuOptions();
-
-  
 }
-
 void setSpeedFunction() {
   Serial.println("Setting Speed");
   int speedIndex = menuCurrentPt->index;
@@ -266,8 +221,6 @@ void setSpeedFunction() {
   pch = strtok(*speedChar," "); // Extracting the numerical part of the speed
   pch = strtok(NULL," ");
   int speedValue = *pch-'0';
-//  Serial.println(pch);
-//  Serial.println(speedValue);
   
   switch (speedValue){
     case 1:
@@ -292,18 +245,11 @@ void setSpeedFunction() {
       PORTC = B00000000;
       break;
   }
-  Serial.println(PORTC);
   EEPROM.write(speedMemoryLocation,PORTC);
-
-  
-  //PORTC = B00000000;
 }
-
-
 void onPumpPinFunction(){
   digitalWrite(pumpRelayPin, HIGH); 
   digitalWrite(pumpRelayLEDPin, LOW); 
-  
   pumpState = HIGH;
   Serial.print(pumpState);
 }
@@ -330,34 +276,12 @@ void offBlowerPinFunction(){
   digitalWrite(blowerRelayPin, HIGH); 
 }
 
-
-//void createSpeedItems(){
-//  for(int j=1; j<9; j++){
-//    int integer = j; 
-//    char speedString[] = "Speed "; 
-//    char integerString[32];
-//    
-//    sprintf(integerString, "%d", integer);
-//    strcat(speedString, integerString); 
-//    Serial.println(speedString);
-//    char tempString[] = {*speedString}; 
-//    unsigned char speedUnsigned[] = {(unsigned char)*tempString};
-//    Serial.println(speedString);/// Something strange with *string giving this on the end ⸮H
-//    speedItemList[j-1] = MenuItem(AR_SIZE(speedString), speedUnsigned, speedString, &setSpeedFunction);
-//  }
-// //MenuClass speedMenu(8,speedItemList);
-//// speedMenu.displayMenuOptions();
-//
-//}
-
+////////////////////// SETUP //////////////////////
 
 void setup() {
-   // Creating a Menu It  em List with the above
-//  MenuItem itemList1[3] = {runItem,cleanItem,settingsItem}; // Create list of menu item objects
-//  MenuItem itemList2[3] = {testItem2, runItem2,settingsItem2}; 
-//  pinMode(22, OUTPUT); 
+  // Read Speed Settings from Memory 
   byte speedSettingfromMemory = EEPROM.read(speedMemoryLocation);
-  /// Setting up the relay pins 
+  /// Inirialising up the relay pin ports
   DDRA = B11111111; 
   DDRC = B00000111;
   PORTA = B11111111;
