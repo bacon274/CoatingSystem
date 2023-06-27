@@ -9,43 +9,49 @@
 
 #define AR_SIZE( a ) sizeof( a ) / sizeof( a[0] )
 
-//// Global Variables ////////
-    //// NOTE: These can be accessed by the libraries using extern variable definition
-// EEPROM location 
+/////////////// Global Variables ///////////////
+// EEPROM location //
 int speedMemoryLocation = 0;
 
+// LCD and Menu Classes //
 ActuatorClass testA(13); 
 LCD12864RSPI LCDA1 = LCD12864RSPI();
 
-// ROTARY ENCODER 
+// ROTARY ENCODER //
 KY040 Rotary(9,8,11);
 int counter = 0;
 
 // IO Interrupt Pins and Individual Relays
 
-//// Pump 
-//const byte interruptPin1 = 2;
-//const byte interruptPin2 = 3;
-//volatile byte state = HIGH;
-//const byte relayPin1 = 27;
-
-// Pump 
+// Pump //
 const byte pumpOnPin = 2;
 const byte pumpOffPin = 3;
-volatile byte state = HIGH;
-const byte pumpRelayPin = 29; // need to check
+volatile byte pumpState = LOW;
+const byte pumpRelayPin = 50; // need to check
+const byte pumpRelayLEDPin = 51;
 
-// Rollers
-const byte rollerOnPin = 18;
-const byte rollerOffPin = 19;
-//volatile byte state = HIGH;
-const byte rollerRelayPin = 26; 
+// Rollers //
+const byte rollerOnPin = 20;
+const byte rollerOffPin = 21;
+volatile byte rollerState = HIGH;
+const byte rollerRelayPin = 53; 
 
-// Blower
-const byte blowerOnPin = 20;
-const byte blowerOffPin = 21;
-//volatile byte state = HIGH;
-const byte blowerRelayPin = 27; 
+// Blower //
+const byte blowerOnPin = 18;
+const byte blowerOffPin = 19;
+volatile byte blowerState = HIGH;
+const byte blowerRelayPin = 52; 
+
+// Solenoid Relay Pins //
+const byte runRelayPin = 23; 
+const byte cleanRelayPin = 24;
+
+// Cleaning Timer Variables //
+unsigned long previousMillis = 0;  
+const long interval = 1000; 
+volatile byte cleanState = false;
+volatile byte runState = false;
+const byte s2RelayPin = 23;
 
 
 
@@ -212,12 +218,17 @@ void menuItemFunction(){
 }
 void cleanFunction(){
   Serial.println("ClEAN FUNCTION HAPPENING");
-  PORTA = B00001111; 
-  
+//  digitalWrite(cleanRelayPin, LOW); 
+//  digitalWrite(runRelayPin, HIGH); 
+  PORTA = B11001010; 
+  cleanState = true;
+  runState = false;
 }
 void runFunction(){
   Serial.println("RUN FUNCTION HAPPENING");
-  PORTA = B11110000; 
+  PORTA = B00110101; 
+  cleanState = false;
+  runState = true;
 }
 
 void backFunction(){
@@ -288,22 +299,27 @@ void setSpeedFunction() {
   //PORTC = B00000000;
 }
 
-void togglePinFunction(){
-  //digitalWrite(relayPin1, HIGH);
-  state = !state;
-//  Serial.println("toggling");
-}
+
 void onPumpPinFunction(){
-  digitalWrite(pumpRelayPin, LOW); 
+  digitalWrite(pumpRelayPin, HIGH); 
+  digitalWrite(pumpRelayLEDPin, LOW); 
+  
+  pumpState = HIGH;
+  Serial.print(pumpState);
 }
 void offPumpPinFunction(){
-  digitalWrite(pumpRelayPin, HIGH); 
+  digitalWrite(pumpRelayPin, LOW); 
+  digitalWrite(pumpRelayLEDPin, HIGH);
+  pumpState = LOW;
+  Serial.print(pumpState);
 }
 
 void onRollerPinFunction(){
+  rollerState = LOW;
   digitalWrite(rollerRelayPin, LOW); 
 }
 void offRollerPinFunction(){
+  rollerState = HIGH;
   digitalWrite(rollerRelayPin, HIGH); 
 }
 
@@ -408,26 +424,28 @@ void setup() {
 
   // Pump buttons and relay Pin Setup
   pinMode(pumpRelayPin, OUTPUT);
+  pinMode(pumpRelayLEDPin, OUTPUT);
   pinMode(pumpOnPin, INPUT_PULLUP); //INPUT_PULLUP
   pinMode(pumpOffPin, INPUT_PULLUP); //INPUT_PULLUP
-  attachInterrupt(digitalPinToInterrupt(pumpOnPin), onPumpPinFunction, RISING);
-  attachInterrupt(digitalPinToInterrupt(pumpOffPin), offPumpPinFunction, RISING);
-
+//  attachInterrupt(digitalPinToInterrupt(pumpOnPin), onPumpPinFunction, LOW);
+//  attachInterrupt(digitalPinToInterrupt(pumpOffPin), offPumpPinFunction, LOW);
+  offPumpPinFunction();
   
   // Roller buttons and relay Pin Setup
   pinMode(rollerRelayPin, OUTPUT);
   pinMode(rollerOnPin, INPUT_PULLUP); //INPUT_PULLUP
   pinMode(rollerOffPin, INPUT_PULLUP); //INPUT_PULLUP
-  attachInterrupt(digitalPinToInterrupt(rollerOnPin), onRollerPinFunction, RISING);
-  attachInterrupt(digitalPinToInterrupt(rollerOffPin), offRollerPinFunction, RISING);
+//  attachInterrupt(digitalPinToInterrupt(rollerOnPin), onRollerPinFunction, LOW);
+//  attachInterrupt(digitalPinToInterrupt(rollerOffPin), offRollerPinFunction, LOW);
+  offRollerPinFunction();
 
   // Blower buttons and relay Pin Setup
   pinMode(blowerRelayPin, OUTPUT);
   pinMode(blowerOnPin, INPUT_PULLUP); //INPUT_PULLUP
   pinMode(blowerOffPin, INPUT_PULLUP); //INPUT_PULLUP
-  attachInterrupt(digitalPinToInterrupt(blowerOnPin), onBlowerPinFunction, RISING);
-  attachInterrupt(digitalPinToInterrupt(blowerOffPin), offBlowerPinFunction, RISING);
-
+//  attachInterrupt(digitalPinToInterrupt(blowerOnPin), onBlowerPinFunction, LOW);
+//  attachInterrupt(digitalPinToInterrupt(blowerOffPin), offBlowerPinFunction, LOW);
+  offBlowerPinFunction();
   
   
   
@@ -436,14 +454,43 @@ void setup() {
   //Serial.println("KY-040 rotary encoder OK");
   //Serial.println(testMenu2.listofMenuItems[3].signedTitle);
 //   test(itemList1,1);
-//   test(itemList2,2);
+//   test(itemList2,2);4
   testMenu.displayMenuOptions(); /// UNCOMMENT to initialise menu
   
 }
 
 void loop() {
+  unsigned long currentMillis = millis();
   Rotary.Process( millis() );
-//  Serial.println(digitalRead(pumpOnPin));
+  if(digitalRead(pumpOnPin) == LOW){
+    onPumpPinFunction();  
+  }else if(digitalRead(pumpOffPin) == LOW){
+    offPumpPinFunction();
+  };
+  if(digitalRead(rollerOnPin) == LOW){
+    onRollerPinFunction();
+  }else if(digitalRead(rollerOffPin) == LOW){
+    offRollerPinFunction();
+  }
+  if(digitalRead(blowerOnPin) == LOW){
+    onBlowerPinFunction();
+  }else if(digitalRead(blowerOffPin) == LOW){
+    offBlowerPinFunction();
+  }
+  if(cleanState == true && currentMillis - previousMillis >= interval){
+    digitalWrite(s2RelayPin, !digitalRead(s2RelayPin));
+    previousMillis = currentMillis;
+  }
+  
+
+  delay(5);
+//  Serial.print(pumpState);
+//  Serial.print(",");
+//  Serial.print(digitalRead(pumpOnPin));
+//  Serial.print(",");
+//  Serial.println(digitalRead(pumpOffPin));
+//  Serial.println(digitalRead(rollerOnPin));
+//  Serial.println(digitalRead(rollerOffPin));
 
   // digitalWrite(relayPin1, state);
 //   Serial.println(state);
