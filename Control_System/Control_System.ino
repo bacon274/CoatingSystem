@@ -279,113 +279,61 @@ void offBlowerPinFunction(){
 ////////////////////// SETUP //////////////////////
 
 void setup() {
+  ///////// Initialise Ports //////////
   // Read Speed Settings from Memory 
   byte speedSettingfromMemory = EEPROM.read(speedMemoryLocation);
-  /// Inirialising up the relay pin ports
+  /// Initialising the relay pin ports
   DDRA = B11111111; 
   DDRC = B00000111;
   PORTA = B11111111;
   PORTC = speedSettingfromMemory;
 
-  
-  
-//  digitalWrite(22, HIGH);
-//  delay(500);
-//  digitalWrite(22, LOW);
+  ///////// Initialise Serial //////////
   Serial.begin(9600); 
   delay(500);
-  LCDA1.initDriverPin(4,7,10);   //INIT SPI Interface
-  LCDA1.Initialise();            // INIT SCREEN
+
+  ///////// Initialise Screen + Rotary Encoder //////////
+  LCDA1.initDriverPin(4,7,10);   // INIT SPI Interface //
+  LCDA1.Initialise();            // INIT SCREEN //
+  // INIT THE ROTARY INTERRUPTS //
   delay(500);
-//  Serial.println(speedSettingfromMemory);
-
-
-//  unsigned char settingUpCchar[] = "Setting Up";
-//  LCDA1.DisplayString(0,0,settingUpCchar, 10);
-  
-//  testMenu2.addMenuItemList(AR_SIZE(itemList2),itemList2); //// For some reason the item list is a global variable that gets reassiged when declared in the setup loop seems to stop the issue
-//
-//  testMenu.addMenuItemList(AR_SIZE(itemList1),itemList1); // add menu item array to menu object 
-
-
-//  speedMenu.displayMenuOptions();
-//  testMenu.displayMenuOptions(); /// UNCOMMENT to initialise menu
-
-  
-//  test1(itemList1,1);
-//  test1(itemList2,2);
-//  Serial.println("from object");
-//   for (int i =0; i<3; i++){
-//    Serial.print(i);
-//    Serial.print(" ");
-//    Serial.println(testMenu.listofMenuItems[i].signedTitle);
-//  }
-//  Serial.println(testMenu.itemListLength);
-
-  
-//  delay(500);
-//  testMenu2.displayMenuOptions();
-//  delay(500);
-
-  //// INIT THE ROTARY INTERRUPTS
-   if ( !Rotary.Begin() ) {
+  if ( !Rotary.Begin() ) {
     Serial.println("unable to init rotate button");
     while (1);
   }
-
-  // init callbacks ////
+  // Initialise Rotary Callbacks ////
   Rotary.OnButtonClicked(OnButtonClicked);
   Rotary.OnButtonLeft(OnButtonLeft);
   Rotary.OnButtonRight(OnButtonRight);
 
-  // set up interrupt pins 
-  // Example
-//  pinMode(relayPin1, OUTPUT);
-//  pinMode(interruptPin1, INPUT_PULLUP); //INPUT_PULLUP
-//  pinMode(interruptPin2, INPUT_PULLUP); //INPUT_PULLUP
-//  attachInterrupt(digitalPinToInterrupt(interruptPin1), onPinFunction, RISING);
-//  attachInterrupt(digitalPinToInterrupt(interruptPin2), offPinFunction, RISING);
-
-  // Pump buttons and relay Pin Setup
+  ///////// Initialise Output Pins  //////////
+  // Pump buttons and relay Pin Setup //
   pinMode(pumpRelayPin, OUTPUT);
   pinMode(pumpRelayLEDPin, OUTPUT);
-  pinMode(pumpOnPin, INPUT_PULLUP); //INPUT_PULLUP
-  pinMode(pumpOffPin, INPUT_PULLUP); //INPUT_PULLUP
-//  attachInterrupt(digitalPinToInterrupt(pumpOnPin), onPumpPinFunction, LOW);
-//  attachInterrupt(digitalPinToInterrupt(pumpOffPin), offPumpPinFunction, LOW);
+  pinMode(pumpOnPin, INPUT_PULLUP); 
+  pinMode(pumpOffPin, INPUT_PULLUP); 
   offPumpPinFunction();
   
-  // Roller buttons and relay Pin Setup
+  // Roller buttons and relay Pin Setup //
   pinMode(rollerRelayPin, OUTPUT);
-  pinMode(rollerOnPin, INPUT_PULLUP); //INPUT_PULLUP
-  pinMode(rollerOffPin, INPUT_PULLUP); //INPUT_PULLUP
-//  attachInterrupt(digitalPinToInterrupt(rollerOnPin), onRollerPinFunction, LOW);
-//  attachInterrupt(digitalPinToInterrupt(rollerOffPin), offRollerPinFunction, LOW);
+  pinMode(rollerOnPin, INPUT_PULLUP); 
+  pinMode(rollerOffPin, INPUT_PULLUP); 
   offRollerPinFunction();
 
-  // Blower buttons and relay Pin Setup
+  // Blower buttons and relay Pin Setup //
   pinMode(blowerRelayPin, OUTPUT);
-  pinMode(blowerOnPin, INPUT_PULLUP); //INPUT_PULLUP
-  pinMode(blowerOffPin, INPUT_PULLUP); //INPUT_PULLUP
-//  attachInterrupt(digitalPinToInterrupt(blowerOnPin), onBlowerPinFunction, LOW);
-//  attachInterrupt(digitalPinToInterrupt(blowerOffPin), offBlowerPinFunction, LOW);
+  pinMode(blowerOnPin, INPUT_PULLUP); 
+  pinMode(blowerOffPin, INPUT_PULLUP); 
   offBlowerPinFunction();
   
-  
-  
-  
-  
-  //Serial.println("KY-040 rotary encoder OK");
-  //Serial.println(testMenu2.listofMenuItems[3].signedTitle);
-//   test(itemList1,1);
-//   test(itemList2,2);4
-  testMenu.displayMenuOptions(); /// UNCOMMENT to initialise menu
-  
+  ///////// Initialise Menu Display  //////////
+  testMenu.displayMenuOptions(); 
 }
 
 void loop() {
   unsigned long currentMillis = millis();
   Rotary.Process( millis() );
+  ///////// Button Logic Statements  //////////
   if(digitalRead(pumpOnPin) == LOW){
     onPumpPinFunction();  
   }else if(digitalRead(pumpOffPin) == LOW){
@@ -401,21 +349,11 @@ void loop() {
   }else if(digitalRead(blowerOffPin) == LOW){
     offBlowerPinFunction();
   }
+  ///////// Period Cleaning Cycle  //////////
   if(cleanState == true && currentMillis - previousMillis >= interval){
     digitalWrite(s2RelayPin, !digitalRead(s2RelayPin));
     previousMillis = currentMillis;
   }
   
-
   delay(5);
-//  Serial.print(pumpState);
-//  Serial.print(",");
-//  Serial.print(digitalRead(pumpOnPin));
-//  Serial.print(",");
-//  Serial.println(digitalRead(pumpOffPin));
-//  Serial.println(digitalRead(rollerOnPin));
-//  Serial.println(digitalRead(rollerOffPin));
-
-  // digitalWrite(relayPin1, state);
-//   Serial.println(state);
 }
