@@ -189,7 +189,7 @@ void cleanFunction(){
   runState = false;
 }
 void runFunction(){
-  PORTA = B00110101; 
+  PORTA = B00100000; // blank blank p2 s5 s4 s3 s2 s1
   Serial.println("RUN FUNCTION HAPPENING");
   cleanState = false;
   runState = true;
